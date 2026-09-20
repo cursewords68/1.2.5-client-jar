@@ -1850,21 +1850,28 @@ const JVM={
       }
 
 
-      if(
-        name==="charAt" &&
-        desc==="(I)C"
-      ){
-
-        return (
-          receiver?.value ?? ""
-        ).charCodeAt(
-          Number(args[0])
-        );
-      }
-    }
-        if(
-  owner==="java/awt/Frame" &&
+if(
   (
+    owner==="java/awt/Frame" &&
+    (
+      (
+        name==="setLayout" &&
+        desc==="(Ljava/awt/LayoutManager;)V"
+      ) ||
+      (
+        name==="add" &&
+        desc==="(Ljava/awt/Component;Ljava/lang/Object;)V"
+      )
+    )
+  ) ||
+  (
+    owner==="java/awt/Canvas" &&
+    name==="setPreferredSize" &&
+    desc==="(Ljava/awt/Dimension;)V"
+  )
+){
+  return undefined;
+}
     (
       name==="setLayout" &&
       desc==="(Ljava/awt/LayoutManager;)V"
