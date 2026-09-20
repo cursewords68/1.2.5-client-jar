@@ -1693,7 +1693,175 @@ const JVM={
         ...args
       );
     }
+    /*
+     * java/lang/StringBuilder compatibility.
+     * Minecraft 1.2.5 uses StringBuilder heavily during startup.
+     */
+    if(owner==="java/lang/StringBuilder"){
 
+      if(name==="<init>"){
+
+        if(receiver){
+
+          if(args.length===0){
+
+            receiver.value="";
+
+          }else if(
+            args.length===1 &&
+            typeof args[0]==="number"
+          ){
+
+            receiver.value="";
+
+          }else{
+
+            receiver.value=
+              this.stringValue(
+                args[0]
+              );
+          }
+        }
+
+        return undefined;
+      }
+
+
+      if(name==="append"){
+
+        if(
+          receiver &&
+          receiver.value===undefined
+        ){
+          receiver.value="";
+        }
+
+        let value;
+
+        if(
+          desc==="(Ljava/lang/String;)Ljava/lang/StringBuilder;"
+        ){
+
+          value=
+            this.stringValue(
+              args[0]
+            );
+
+        }else if(
+          desc==="(Ljava/lang/Object;)Ljava/lang/StringBuilder;"
+        ){
+
+          value=
+            this.stringValue(
+              args[0]
+            );
+
+        }else if(
+          desc==="(I)Ljava/lang/StringBuilder;"
+        ){
+
+          value=
+            String(
+              Number(args[0])|0
+            );
+
+        }else if(
+          desc==="(J)Ljava/lang/StringBuilder;"
+        ){
+
+          value=
+            String(args[0]);
+
+        }else if(
+          desc==="(Z)Ljava/lang/StringBuilder;"
+        ){
+
+          value=
+            Number(args[0])
+              ? "true"
+              : "false";
+
+        }else if(
+          desc==="(C)Ljava/lang/StringBuilder;"
+        ){
+
+          value=
+            String.fromCharCode(
+              Number(args[0])&0xffff
+            );
+
+        }else if(
+          desc==="(F)Ljava/lang/StringBuilder;"
+        ){
+
+          value=
+            String(
+              Number(args[0])
+            );
+
+        }else if(
+          desc==="(D)Ljava/lang/StringBuilder;"
+        ){
+
+          value=
+            String(
+              Number(args[0])
+            );
+
+        }else if(
+          desc==="([C)Ljava/lang/StringBuilder;"
+        ){
+
+          value=
+            this.stringValue(
+              args[0]
+            );
+
+        }else{
+
+          return undefined;
+        }
+
+        receiver.value+=value;
+
+        return receiver;
+      }
+
+
+      if(
+        name==="toString" &&
+        desc==="()Ljava/lang/String;"
+      ){
+
+        return this.makeString(
+          receiver?.value ?? ""
+        );
+      }
+
+
+      if(
+        name==="length" &&
+        desc==="()I"
+      ){
+
+        return (
+          receiver?.value ?? ""
+        ).length;
+      }
+
+
+      if(
+        name==="charAt" &&
+        desc==="(I)C"
+      ){
+
+        return (
+          receiver?.value ?? ""
+        ).charCodeAt(
+          Number(args[0])
+        );
+      }
+    }
     /*
      * JDK compatibility
      */
