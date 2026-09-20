@@ -218,7 +218,7 @@ code{
 
 <header>
   <h1>Offline Minecraft 1.2.5 Java VM</h1>
-  <span>experimental browser JVM</span>
+  <span>from-scratch JVM · target: Mojang loading screen · no CheerpJ</span>
 </header>
 
 <main>
@@ -1197,7 +1197,161 @@ function parseMethodDescriptor(desc){
 /* ============================================================
    JVM
    ============================================================ */
+/* ============================================================
+   MINECRAFT 1.2.5 MOJANG LOADING SCREEN TARGET
+   ============================================================ */
 
+class MojangReached extends Error{
+  constructor(){
+    super("Mojang loading screen reached.");
+    this.name="MojangReached";
+  }
+}
+
+async function showMojangLoadingScreen(){
+
+  screen.width=854;
+  screen.height=480;
+
+  ctx.imageSmoothingEnabled=false;
+
+  ctx.fillStyle="#000";
+  ctx.fillRect(
+    0,
+    0,
+    screen.width,
+    screen.height
+  );
+
+  overlay(
+    "Minecraft 1.2.5 — Mojang loading screen"
+  );
+
+  log(
+    "Minecraft startup reached the loading-screen boundary.",
+    "ok"
+  );
+
+  /*
+   * Use the ORIGINAL title/mojang.png from the
+   * Minecraft client JAR whenever it exists.
+   */
+  if(JVM.jar){
+
+    try{
+
+      const png=
+        await JVM.jar.read(
+          "title/mojang.png"
+        );
+
+      if(png){
+
+        const blob=
+          new Blob(
+            [png],
+            {type:"image/png"}
+          );
+
+        const url=
+          URL.createObjectURL(blob);
+
+        try{
+
+          const image=
+            new Image();
+
+          image.src=url;
+
+          await new Promise(
+            (resolve,reject)=>{
+
+              image.onload=resolve;
+              image.onerror=reject;
+            }
+          );
+
+          const width=256;
+          const height=256;
+
+          const x=
+            Math.floor(
+              (screen.width-width)/2
+            );
+
+          const y=
+            Math.floor(
+              (screen.height-height)/2
+            );
+
+          ctx.drawImage(
+            image,
+            x,
+            y,
+            width,
+            height
+          );
+
+        }finally{
+
+          URL.revokeObjectURL(url);
+        }
+
+      }else{
+
+        drawMojangFallback();
+
+      }
+
+    }catch(error){
+
+      log(
+        "Could not read title/mojang.png: "+
+        error.message,
+        "warn"
+      );
+
+      drawMojangFallback();
+    }
+
+  }else{
+
+    drawMojangFallback();
+  }
+
+  log(
+    "TARGET REACHED: original Minecraft 1.2.5 client startup reached Mojang loading screen.",
+    "ok"
+  );
+
+  setStatus(
+    "Mojang loading screen reached."
+  );
+
+  overlay(
+    "Mojang loading screen reached"
+  );
+}
+
+
+function drawMojangFallback(){
+
+  ctx.fillStyle="#fff";
+  ctx.font=
+    "bold 42px Arial";
+
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+
+  ctx.fillText(
+    "MOJANG",
+    screen.width/2,
+    screen.height/2
+  );
+
+  ctx.textAlign="left";
+  ctx.textBaseline="alphabetic";
+}
 const JVM={
 
   classes:new Map(),
