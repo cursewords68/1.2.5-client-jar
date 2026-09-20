@@ -1848,8 +1848,7 @@ const JVM={
           receiver?.value ?? ""
         ).length;
       }
-
-
+      
 if(
   (
     owner==="java/awt/Frame" &&
@@ -1872,22 +1871,11 @@ if(
 ){
   return undefined;
 }
-    (
-      name==="setLayout" &&
-      desc==="(Ljava/awt/LayoutManager;)V"
-    ) ||
-    (
-      name==="add" &&
-      desc==="(Ljava/awt/Component;Ljava/lang/Object;)V"
-    )
-  )
-){
-  return undefined;
-}
 
-    /*
-     * JDK compatibility
-     */
+/*
+ * JDK compatibility
+ */
+      
     if(
       owner==="java/lang/Object"
     ){
