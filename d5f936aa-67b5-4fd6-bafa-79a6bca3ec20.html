@@ -1408,6 +1408,67 @@ const JVM={
     return this.classes.get(name)||null;
   },
 
+  isInstanceOf(obj,targetName){
+
+  if(obj===null || obj===undefined)
+    return false;
+
+  if(obj instanceof JVMArray){
+    return (
+      targetName==="java/lang/Object" ||
+      targetName===obj.componentType ||
+      targetName===
+        ("["+obj.componentType)
+    );
+  }
+
+  let cls=
+    this.findClass(
+      obj.className
+    );
+
+  while(cls){
+
+    if(cls.name===targetName)
+      return true;
+
+    if(
+      cls.interfaces &&
+      cls.interfaces.includes(
+        targetName
+      )
+    ){
+      return true;
+    }
+
+    if(!cls.superName)
+      break;
+
+    cls=
+      this.findClass(
+        cls.superName
+      );
+  }
+
+  return false;
+},
+
+javaException(
+  className,
+  message=""
+){
+
+  const error=
+    new JVMObject(
+      className
+    );
+
+  error.message=
+    String(message);
+
+  return error;
+},
+  
   makeString(value){
 
     if(value===null)
@@ -3016,7 +3077,47 @@ if(
             break;
           }
 
+case 0x5c:{
+  const a=pop();
+  const b=pop();
 
+  push(b);
+  push(a);
+  push(b);
+  push(a);
+
+  break;
+}
+
+case 0x5d:{
+  const a=pop();
+  const b=pop();
+  const c=pop();
+
+  push(b);
+  push(a);
+  push(c);
+  push(b);
+  push(a);
+
+  break;
+}
+
+case 0x5e:{
+  const a=pop();
+  const b=pop();
+  const c=pop();
+  const d=pop();
+
+  push(b);
+  push(a);
+  push(d);
+  push(c);
+  push(b);
+  push(a);
+
+  break;
+}
           /* ---------------- integer arithmetic ---------------- */
 
           case 0x60:{
@@ -4177,38 +4278,65 @@ if(
 
           /* ---------------- checkcast/instanceof ---------------- */
 
-          case 0xc0:{
-            readU2();
-            break;
-          }
+case 0xc0:{
+  const index=readU2();
+  const info=this.constant(cls,index);
+  const obj=pop();
 
-          case 0xc1:{
-            readU2();
+  if(obj===null){
+    push(null);
+    break;
+  }
 
-            const obj=pop();
+  if(
+    info &&
+    info.className &&
+    this.isInstanceOf(
+      obj,
+      info.className
+    )
+  ){
+    push(obj);
+    break;
+  }
 
-            push(
-              obj===null
-                ?0
-                :1
-            );
+  throw this.javaException(
+    "java/lang/ClassCastException",
+    "Cannot cast "+
+    (obj.className||"object")+
+    " to "+
+    (info?.className||"unknown")
+  );
+}
 
-            break;
-          }
+case 0xc1:{
+  const index=readU2();
+  const info=this.constant(cls,index);
+  const obj=pop();
+
+  push(
+    obj!==null &&
+    info &&
+    info.className &&
+    this.isInstanceOf(
+      obj,
+      info.className
+    )
+      ?1
+      :0
+  );
+
+  break;
+}
 
 
           /* ---------------- athrow ---------------- */
 
-          case 0xbf:{
-            const throwable=pop();
+case 0xbf:{
+  const throwable=pop();
 
-            throw new Error(
-              "Java exception: "+
-              this.stringValue(
-                throwable
-              )
-            );
-          }
+  throw throwable;
+}
 
 
           /* ---------------- wide ---------------- */
