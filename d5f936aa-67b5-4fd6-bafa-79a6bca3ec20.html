@@ -1862,6 +1862,14 @@ const JVM={
         );
       }
     }
+        if(
+      owner==="java/awt/Frame" &&
+      name==="setLayout" &&
+      desc==="(Ljava/awt/LayoutManager;)V"
+    ){
+      return undefined;
+    }
+
     /*
      * JDK compatibility
      */
